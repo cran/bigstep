@@ -1,28 +1,29 @@
 # The multi-forward procedure using crit.multif.
-multiForward <- function(X, y, Xm=NULL, ord=1:ncol(X), maxf=min(ncol(X), 70),
-                         crit.multif=bic, maxp=1e7, verbose=TRUE) {
+multiForward <-
+  function(X, y, fitFun=fitLinear, Xm=NULL, ord=1:ncol(X), crit.multif=bic,
+           maxf=min(ncol(X), 70), maxp=1e6, verbose=TRUE, ...) {
 
-  nXm <- ifelse(is.null(Xm), 0, ncol(Xm))
   nX <- ncol(X)
+  nXm <- ncol(Xm) # there is always the intercept in Xm
   if (maxf > nX)
     maxf <- nX
   n <- length(y)
   add <- NULL
-  if (verbose)
-    message("Starting the multi-forward step, max = ", maxf, " variables.")
   maxf <- maxf + nXm
-  rss <- ifelse(nXm > 0, fitModel(Xm, y), sum(y^2, na.rm=TRUE))
-  crit.v <- crit.multif(rss=rss, n=n, k=nXm)
-
   part <- ceiling(maxp/n)
   parts <- split(ord, ceiling(seq_along(ord)/part))
+
+  loglik <- calculateLogLik(Xm, y, fitFun)
+  crit.v <- R.utils::doCall(crit.multif, loglik=loglik, n=n, k=nXm, Xm=Xm, ...)
+
   for (j in seq_along(parts)) {
     vars <- parts[[j]]
-    XX <- as.matrix(X[, vars])
+    XX <- as.matrix(X[, vars, drop=FALSE])
     for (i in seq_along(vars)) {
-      Xm.new <- cbind(Xm, XX[, i])
-      rss <- fitModel(Xm.new, y)
-      crit.v.new <- crit.multif(rss=rss, n=n, k=nXm+1)
+      Xm.new <- cbind(Xm, XX[, i, drop=FALSE])
+      loglik <- calculateLogLik(Xm.new, y, fitFun)
+      crit.v.new <- R.utils::doCall(crit.multif, loglik=loglik, n=n, k=nXm+1,
+                                    Xm=Xm, ...)
       if (crit.v.new < crit.v) {
         if (verbose)
           message(".", appendLF=FALSE)
@@ -30,16 +31,11 @@ multiForward <- function(X, y, Xm=NULL, ord=1:ncol(X), maxf=min(ncol(X), 70),
         nXm <- nXm + 1
         crit.v <- crit.v.new
         Xm <- Xm.new
-        if (nXm >= maxf) {
-          if (verbose)
-            message("\nDone. ", length(add), " variables selected.")
+        if (nXm >= maxf)
           return(list(add=add, crit.v=crit.v))
-        }
       }
     }
   }
-  if (verbose)
-    message("\nDone. ", length(add), " variables selected.")
 
   return(list(add=add, crit.v=crit.v))
 }

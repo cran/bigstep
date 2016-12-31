@@ -3,17 +3,21 @@ test_that("Stepwise", {
   n <- 200
   M <- 10
   X <- matrix(rnorm(M*n), ncol=M)
-  y <- X[, 2] - X[, 3] + X[, 6] - X[, 10] + rnorm(n, sd=0.1)
-  model <- c(2, 3, 6, 10)
-  expect_equal(sort(stepwise(X, y, verbose=FALSE, p=M)$X), model)
-  expect_equal(sort(stepwise(X, y, Xm=matrix(1, nrow=n), verbose=FALSE, p=M)$X),
-               model)
-  results <- stepwise(X, y, Xm=matrix(1, nrow=n), stay=1, verbose=FALSE, p=M)
-  expect_equal(sort(results$X), model)
-  expect_equal(results$Xm, 1)
-  Xm <- cbind(X[, 3:4], rnorm(n), X[, 7], 1, rnorm(n))
-  results <- stepwise(X, y + 10, Xm=Xm, stay=c(2, 4), verbose=FALSE, p=M)
-  expect_equal(sort(results$X), c(2, 6, 10))
-  expect_equal(sort(results$Xm), c(1, 2, 4, 5))
+  colnames(X) <- 1:M
+  y <- X[, 2] - X[, 3] + X[, 6] - X[, 10] + rnorm(n)
+  Xm <- matrix(1, nrow=n)
+  Xs <- bigstep:::stepwise(X, y, Xm=Xm, verbose=FALSE, p=M)
+
+  expect_equal(sort(as.numeric(colnames(Xs)[-1])), c(2, 3, 6, 10))
+  Xm <- cbind(1, rnorm(n), X[, 3:4], rnorm(n), X[, 6])
+  colnames(Xm) <- -(1:6)
+  Xs <- bigstep:::stepwise(X[, -6], y, Xm=Xm, stay=3, verbose=FALSE, p=M)
+  expect_equal(sort(as.numeric(colnames(Xs))), c(-6, -3, -2, -1, 2, 10))
+
+  y <- rbinom(n, 1, 0.5)
+  expect_equal(ncol(bigstep:::stepwise(X, y, Xm=Xm,
+               verbose=FALSE, p=M)), 1)
+  expect_equal(ncol(bigstep:::stepwise(X=Xm, y, Xm=Xm,
+               verbose=FALSE, p=M)), 1)
 })
 

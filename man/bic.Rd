@@ -4,10 +4,10 @@
 \alias{bic}
 \title{BIC}
 \usage{
-bic(rss, n, k)
+bic(loglik, n, k)
 }
 \arguments{
-\item{rss}{a numeric > 0, the residual sum of squares.}
+\item{loglik}{a numeric, the log-likelihood.}
 
 \item{n}{an integer > 0, a number of observations.}
 
@@ -20,6 +20,6 @@ A number, a value of BIC.
 Calculate BIC (Bayesian Information Criterion).
 }
 \examples{
-bic(rss=10, n=100, k=5)
+bic(loglik=10, n=100, k=5)
 }
 

@@ -4,10 +4,10 @@
 \alias{aic}
 \title{AIC}
 \usage{
-aic(rss, n, k)
+aic(loglik, n, k)
 }
 \arguments{
-\item{rss}{a numeric > 0, the residual sum of squares.}
+\item{loglik}{a numeric, the log-likelihood.}
 
 \item{n}{an integer > 0, a number of observations.}
 
@@ -20,6 +20,6 @@ A number, a value of AIC.
 Calculate AIC (Akaike Information Criterion).
 }
 \examples{
-aic(rss=10, n=100, k=5)
+aic(loglik=10, n=100, k=5)
 }
 

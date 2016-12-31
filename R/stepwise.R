@@ -1,28 +1,18 @@
-# The stepwise procedure using a selected criterion.
-stepwise <- function(X, y, Xm=NULL, stay=NULL, ord=1:ncol(X), crit=mbic,
-                     maxp=1e7, verbose=TRUE, ...) {
-  n <- length(y)
-  nXm <- ifelse(is.null(Xm), 0, ncol(Xm))
-  if (nXm > 0)
-    colnames(Xm) <- 1:nXm
-  if (verbose)
-    message("Starting stepwise.")
-  if (!is.null(stay))
-    stay.old <- as.character(stay)
+# The stepwise procedure using the selected criterion.
+stepwise <- function(X, y, fitFun=fitLinear, crit=mbic, Xm=NULL, stay=1,
+                     ord=1:ncol(X), maxp=1e6, verbose=TRUE, ...) {
 
-  rss <- ifelse(nXm != 0, fitModel(Xm, y), sum(y^2, na.rm=TRUE))
-  crit.v <- crit(rss=rss, n=n, k=nXm, ...)
+  n <- length(y)
+  loglik <- calculateLogLik(Xm, y, fitFun)
+  crit.v <- R.utils::doCall(crit, loglik=loglik, n=n, k=ncol(Xm), Xm=Xm, ...)
+
   repeat {
-    model <- colnames(Xm)
-    if (!is.null(stay))
-      stay <- which(model %in% stay.old)
-    mf <- forwardStep(X, y, Xm, ord, crit, maxp, ...)
-    mb <- backwardStep(Xm, y, stay, crit, ...)
+    mf <- forwardStep(X, y, fitFun, crit, Xm, ord, maxp, ...)
+    mb <- backwardStep(Xm, y, fitFun, crit, stay, ...)
     crit.v.new <- min(mf$crit.v, mb$crit.v)
     if (crit.v.new < crit.v) {
       if (mf$crit.v < mb$crit.v) {
-        Xm <- cbind(Xm, X[, mf$add])
-        colnames(Xm)[ncol(Xm)] <- -mf$add
+        Xm <- cbind(Xm, X[, mf$add, drop=F])
       } else {
         Xm <- Xm[, -mb$drop, drop=FALSE]
       }
@@ -34,11 +24,5 @@ stepwise <- function(X, y, Xm=NULL, stay=NULL, ord=1:ncol(X), crit=mbic,
     }
   }
 
-  nXm <- ifelse(is.null(Xm), 0, ncol(Xm))
-  if (verbose)
-    message("\nDone. ", nXm, " variables selected.")
-  model <- as.numeric(model)
-  model <- list(X=-model[model<0], Xm=model[model>0])
-
-  return(model)
+  return(Xm)
 }

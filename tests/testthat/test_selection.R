@@ -4,48 +4,53 @@ test_that("Model selection", {
   n <- 200
   M <- 10
   X <- matrix(rnorm(M*n), ncol=M)
-  Xm <- matrix(rnorm(M*n), ncol=M)
-  y <- X[, 2] + X[, 6] - X[, 10] + Xm[, 2] - Xm[, 5] + rnorm(n, sd=0.1)
-  res <- doAllSteps(X, y, Xm, stay=c(1,8), verbose=FALSE, p=M)
-  expect_equal(res$X, c(2, 6, 10))
-  expect_equal(res$Xm, c(1, 2, 5, 8))
-  res <- doAllSteps(X, y, Xm, stay=c(1,8), ord=c(5, 8, 10), verbose=FALSE, p=M)
-  expect_equal(res$X, 10)
-  expect_equal(res$Xm, c(1, 2, 5, 8))
+  colnames(X) <- 1:M
+  Xm <- cbind(1, matrix(rnorm(M*n), ncol=M))
+  colnames(Xm) <- c("inter", -(1:M))
+  y <- X[, 2] + X[, 6] - X[, 10] + Xm[, 2] - Xm[, 5] + rnorm(n)
+  Xs <- bigstep:::allSteps(X, y, Xm=Xm, stay=2, verbose=FALSE, p=M)
+  expect_equal(sort(as.numeric(colnames(Xs)[-1])), c(-4, -1, 2, 6, 10))
+  Xs <- bigstep:::allSteps(X, y=rnorm(n), Xm=Xm[, 1, drop=FALSE],
+                              verbose=FALSE, p=M)
+  expect_equal(ncol(Xs), 1)
 
   # selectModel
-  expect_equal(names(coef(selectModel(X, y, verbose=FALSE, p=M))),
-               c("intercept", "X2", "X6", "X10"))
-  expect_equal(names(coef(selectModel(X, y, verbose=FALSE, crit=bic))),
-               c("intercept", "X2", "X6", "X10"))
-  expect_equal(names(coef(selectModel(X, y, verbose=FALSE, crit=aic))),
-               c("intercept", "X2", "X6", "X10", "X5"))
-  expect_equal(names(coef(selectModel(X, y, multif=FALSE, verbose=FALSE,
-               p=M))), c("intercept", "X2", "X6", "X10"))
-  expect_equal(names(coef(selectModel(X, y, minpv=0.5, intercept=FALSE,
-               verbose=FALSE, p=M))), c("X2", "X6", "X10"))
-  names <- c("Xm1", "Xm2", "Xm5", "Xm8", "X2", "X6", "X10")
-  expect_equal(names(coef(selectModel(X, y, Xm, stay=c(1,8), minpv=0.3,
-               intercept=FALSE, verbose=FALSE, p=M))), names)
-  expect_equal(names(coef(selectModel(X, y, Xm, stay=c(1,8), minpv=0.3,
-               intercept=TRUE, verbose=FALSE, p=M))), c("intercept", names))
-  colnames(X) <- paste0("Z", 1:M)
-  expect_equal(names(coef(selectModel(X, y, minpv=0.5, intercept=FALSE,
-               verbose=FALSE, p=M))), c("Z2", "Z6", "Z10"))
+  model <- c("2", "6", "10")
+  expect_equal(selectModel(X, y, verbose=FALSE, p=M), model)
+  expect_equal(selectModel(X, y, verbose=FALSE, crit=bic), model)
+  expect_equal(selectModel(X, y, verbose=FALSE, crit=aic), model)
+  expect_equal(selectModel(X, y, multif=FALSE, verbose=FALSE, p=M), model)
 
-  # stupid data
-  expect_error(selectModel(y, y, verbose=FALSE, p=M),
-               "X has to be a matrix, data.frame or big.matrix.")
+  model <- selectModel(X, y, Xm=Xm, stay=c(2, 10), minpv=0.3, verbose=FALSE, p=M)
+  expect_equal(sort(as.numeric(model)), c(-9, -4, -1, 2, 6, 10))
+  expect_equal(length(selectModel(X, y=rnorm(n), verbose=FALSE, p=M)), 0)
 
   # big.matrix
   set.seed(1)
   n <- 200
   M <- 1000
   X <- matrix(rnorm(M*n), n, M)
+  colnames(X) <- 1:M
   y <- rowSums(X[, c(10, 50, 200, 500, 750)]) + rnorm(n)
+  library(bigmemory)
   X <- as.big.matrix(X, shared=FALSE)
   Q <- rnorm(n)
   model <- selectModel(X, y, Xm=Q, stay=1, p=M, verbose=FALSE, maxp=2000)
-  expect_equal(names(coef(model)),
-               c("intercept", "Xm1", "X500", "X10", "X200", "X50", "X750"))
+  expect_equal(model, c("", "500", "10", "200", "50", "750"))
+
+  # poisson
+  set.seed(1)
+  n <- 50
+  M <- 10
+  X <- matrix(runif(M*n, -1, 1), ncol=M)
+  colnames(X) <- 1:M
+  mu <- rowSums(X[, c(3, 4, 8)])
+  y <- rpois(n, exp(mu))
+  expect_equal(sort(selectModel(X, y, p=M, fitFun=fitPoisson, verbose=FALSE)),
+               c("3", "4", "8"))
+  # logistic
+  p <- 1/(1 + exp(-3*mu))
+  y <- rbinom(n, 1, p)
+  expect_equal(sort(selectModel(X, y, p=M, fitFun=fitLogistic, verbose=FALSE)),
+               c("3", "4", "8"))
 })

@@ -1,25 +1,20 @@
-# Find the best variable to remove from a model (according to a selected
+# Find the best variable to remove from the model (according to the selected
 # citerion)
-backwardStep <- function(Xm, y, stay=NULL, crit=mbic, ...) {
-  nXm <- ifelse(is.null(Xm), 0, ncol(Xm))
-  if (nXm == length(stay))
-    return(list(drop=0, crit.v=Inf))
-  cand <- 1:nXm
-  if (!is.null(stay)) {
-    cand <- cand[-stay]
-    if (length(cand) == 0)
-      return(list(drop=0, crit.v=Inf))
-  }
-  n <- length(y)
+backwardStep <- function(Xm, y, fitFun=fitLinear, crit=mbic, stay=1, ...) {
 
-  rss <- fitModel(Xm, y)
-  crit.v <- crit(rss=rss, n=n, k=nXm, ...)
+  nXm <- ncol(Xm) # there is always the intercept in X
+  if (nXm <= stay)
+    return(list(drop=0, crit.v=Inf))
+  n <- length(y)
   drop <- 0
-  for (i in cand) {
+
+  loglik <- calculateLogLik(Xm, y, fitFun)
+  crit.v <- R.utils::doCall(crit, loglik=loglik, n=n, k=nXm, Xm=Xm, ...)
+
+  for (i in (stay + 1):nXm) {
     Xm.new <- Xm[, -i, drop=FALSE]
-    rss <- ifelse(nXm > 1, fitModel(Xm.new, y), sum(y^2, na.rm=TRUE))
-    # if nXm == 1, thera are no variable in Xm.new, even intercept
-    crit.v.new <- crit(rss=rss, n=n, k=nXm-1, ...)
+    loglik <- calculateLogLik(Xm.new, y, fitFun)
+    crit.v.new <- R.utils::doCall(crit, loglik=loglik, n=n, k=nXm-1, Xm=Xm, ...)
     if (crit.v.new < crit.v) {
       crit.v <- crit.v.new
       drop <- i

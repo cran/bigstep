@@ -27,13 +27,12 @@
 #' @param verbose a logical. Set \code{FALSE} if you do not want to see any
 #' information during the selection procedure.
 #'
-#' @param ... further arguments passed to \cite{read.big.matrix}.
-#'
 #' @return A numeric, a number of variables successfully written.
 #'
 #' @examples
 #' \dontrun{
-#' data <- matrix(sample(0:2, 20, replace=T), 2, 10)
+#' library(bigmemory)
+#' data <- matrix(sample(0:2, 20, replace=TRUE), 2, 10)
 #' rownames(data) <- c("X1", "X2")
 #' write.table(data, "X.txt", col.names=FALSE)
 #' X <- read.big.matrix("X.txt", sep=" ", type="char", has.row.names=TRUE)
@@ -45,31 +44,31 @@
 
 transposeBigMatrix <-
   function(X, file.out="Xtrans.txt", ord=NULL, sep="\t", type="char",
-           row.names=TRUE, maxp=1e7, verbose=TRUE, ...) {
+           row.names=TRUE, maxp=1e6, verbose=TRUE) {
 
-  n <- ncol(X)
-  part <- ceiling(maxp/nrow(X))
-  parts <- split(1:n, ceiling(seq_along(1:n)/part))
-  lp <- length(parts)
-  if (verbose) {
-    message("Writing to the file...")
-    pb <- utils::txtProgressBar(min=0, max=lp, style=3)
-  }
-  if (is.null(ord))
-    ord <- 1:nrow(X)
-  utils::write.table(t(rownames(X)[ord]), file.out, quote=FALSE, col.names=FALSE,
-              row.names=FALSE)
-  for (i in seq_along(parts)) {
-    XX <- t(X[ord, parts[[i]]])
-    utils::write.table(XX, file.out, quote=FALSE, append=TRUE, col.names=FALSE,
-                row.names=FALSE)
-    if (verbose)
-      utils::setTxtProgressBar(pb, i)
-  }
-  if (verbose) {
-    close(pb)
-    message(length(ord), " variables saved to ", file.out)
-  }
+    n <- ncol(X)
+    part <- ceiling(maxp/nrow(X))
+    parts <- split(1:n, ceiling(seq_along(1:n)/part))
+    lp <- length(parts)
+    if (verbose) {
+      message("Writing to the file...")
+      pb <- utils::txtProgressBar(min=0, max=lp, style=3)
+    }
+    if (is.null(ord))
+      ord <- 1:nrow(X)
+    utils::write.table(t(rownames(X)[ord]), file.out, quote=FALSE,
+                       col.names=FALSE, row.names=FALSE)
+    for (i in seq_along(parts)) {
+      XX <- t(X[ord, parts[[i]]])
+      utils::write.table(XX, file.out, quote=FALSE, append=TRUE,
+                         col.names=FALSE, row.names=FALSE)
+      if (verbose)
+        utils::setTxtProgressBar(pb, i)
+    }
+    if (verbose) {
+      close(pb)
+      message(length(ord), " variables saved to ", file.out)
+    }
 
-  return(length(ord))
-}
+    return(length(ord))
+  }

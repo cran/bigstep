@@ -1,11 +1,10 @@
-# Reduce size of design matrix and order variables according to p-values.
-prepareMatrix <- function(X, y, minpv=0.15, maxp=1e7, verbose=TRUE,
-                          write=FALSE, file.out="Xshort.txt") {
+# Reduce size of the design matrix and order variables according to p-values.
+prepareMatrix <- function(X, y, fitFun=fitLinear, minpv=0.15, maxp=1e6,
+                          verbose=TRUE, file.out=NULL) {
 
-  res <- doSingleTests(X, y, maxp, verbose)
-  t <- abs(res$t)
-  ord <- order(t, decreasing=TRUE)
-  pv <- res$pv[ord]
+  pv <- singleTests(X, y, fitFun, maxp, verbose)
+  ord <- order(pv)
+  pv <- pv[ord]
   ord <- ord[pv < minpv & !is.na(pv)]
 
   if (!is.null(file.out)) {
@@ -26,8 +25,8 @@ prepareMatrix <- function(X, y, minpv=0.15, maxp=1e7, verbose=TRUE,
                 col.names=FALSE, row.names=FALSE)
     for (i in seq_along(parts)) {
       XX <- X[parts[[i]], ord]
-      utils::write.table(XX, file.out, quote=FALSE, append=TRUE, col.names=FALSE,
-                  row.names=FALSE)
+      utils::write.table(XX, file.out, quote=FALSE, append=TRUE,
+                         col.names=FALSE, row.names=FALSE)
       if (verbose)
         utils::setTxtProgressBar(pb, i)
     }

@@ -4,10 +4,10 @@
 \alias{maic}
 \title{mAIC}
 \usage{
-maic(rss, n, k, p, const = 4)
+maic(loglik, n, k, p, const = 4)
 }
 \arguments{
-\item{rss}{a numeric > 0, the residual sum of squares.}
+\item{loglik}{a numeric, the log-likelihood.}
 
 \item{n}{an integer > 0, a number of observations.}
 
@@ -24,6 +24,6 @@ A number, a value of mAIC.
 Calculate mAIC (modified Akaike Information Criterion).
 }
 \examples{
-maic(rss=10, n=100, k=5, p=50)
+maic(loglik=10, n=100, k=5, p=50)
 }
 

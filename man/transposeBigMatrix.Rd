@@ -5,7 +5,7 @@
 \title{Transpose a big matrix}
 \usage{
 transposeBigMatrix(X, file.out = "Xtrans.txt", ord = NULL, sep = "\\t",
-  type = "char", row.names = TRUE, maxp = 1e+07, verbose = TRUE, ...)
+  type = "char", row.names = TRUE, maxp = 1e+06, verbose = TRUE)
 }
 \arguments{
 \item{X}{an object of class big.matrix. The rows of \code{X} contain the
@@ -32,8 +32,6 @@ if you still have problems.}
 
 \item{verbose}{a logical. Set \code{FALSE} if you do not want to see any
 information during the selection procedure.}
-
-\item{...}{further arguments passed to \cite{read.big.matrix}.}
 }
 \value{
 A numeric, a number of variables successfully written.
@@ -43,7 +41,8 @@ Transpose a big matrix and write to a file.
 }
 \examples{
 \dontrun{
-data <- matrix(sample(0:2, 20, replace=T), 2, 10)
+library(bigmemory)
+data <- matrix(sample(0:2, 20, replace=TRUE), 2, 10)
 rownames(data) <- c("X1", "X2")
 write.table(data, "X.txt", col.names=FALSE)
 X <- read.big.matrix("X.txt", sep=" ", type="char", has.row.names=TRUE)

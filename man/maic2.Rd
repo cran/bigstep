@@ -4,14 +4,14 @@
 \alias{maic2}
 \title{mAIC2}
 \usage{
-maic2(rss, n, k, p, const = 4)
+maic2(loglik, n, k, p, const = 4)
 }
 \arguments{
-\item{rss}{a numeric > 0, the residual sum of squares.}
+\item{loglik}{a numeric, the log-likelihood.}
 
 \item{n}{an integer > 0, a number of observations.}
 
-\item{k}{an integer >= 0, a number of chosen variables.}
+\item{k}{an integer >= 0, a number of selected variables.}
 
 \item{p}{an integer > 0, a number of all variables or a weight.}
 
@@ -25,6 +25,6 @@ Calculate mAIC2 (the second version of modified Akaike Information
 Criterion).
 }
 \examples{
-mbic2(rss=10, n=100, k=5, p=50)
+mbic2(loglik=10, n=100, k=5, p=50)
 }
 

@@ -3,18 +3,19 @@
 #' Model selection using the stepwise procedure and the chosen criterion.
 #'
 #' @details
-#' To find the best model, the following algorithm (a modification of the
-#' stepwise selection) is used [3]. In the first step the Pearson correlation
-#' coefficients between \code{y} and all columns of \code{X} are calculated
-#' and columns with p-values for the Pearson correlation tests higher than
-#' \code{minpv} will be excluded from the model selection procedure.
+#' To find the best model (linear or generalized), the following algorithm
+#' (a modification of the stepwise selection) is used [3]. In the first step
+#' the likelihood ratio tests between two regression models are performed:
+#' 1) with only the intercept, 2) with the intercept and every single variable
+#' from the matrix \code{X}. P-values are calculated and variables with
+#' p > \code{minpv} are excluded from the model selection procedure.
 #' In the second step (multi-forward) we start with the null model and add
 #' variables which decrease \code{crit.multif} (in order from the smallest
 #' p-value). The step is finished after we add \code{maxf} variables or none
-#' of remaining variables improve \code{crit.multif}. Then the classical
-#' backward selection is performed (with \code{crit}). When there is no
-#' variables to remove, the last step, the classical stepwise procedure, is
-#' performed (with \code{crit}).
+#' of remaining variables improve \code{crit.multif}.
+#' Then the classical backward selection is performed (with \code{crit}).
+#' When there is no variables to remove, the last step, the classical stepwise
+#' procedure, is performed (with \code{crit}).
 #'
 #' Results from this four-step procedure should be very similar to the
 #' classical stepwise procedure (when we start with the null model and do not
@@ -29,7 +30,7 @@
 #' model should be very small (a few variables).
 #'
 #' If your data are too big to store in RAM, you should read them with the
-#' \code{read.big.matrix} function form the \code{bigmemory} packages. The
+#' \code{read.big.matrix} function from the \code{bigmemory} packages. The
 #' \code{selectModel} function will recognize that \code{X} is not an ordinary
 #' matrix and split your data to smaller parts. It will not change results but
 #' is necessary to work with big data.
@@ -40,7 +41,7 @@
 #' have a lot of explanatory variables and only a few of them should stay in
 #' the final model. If you are interested in controlling the so-called False
 #' Discovery Rate (FDR) is such type of data, you can change \code{crit} to
-#' \code{mBIC2} [2], which control FDR at the level near 0.05. There are more
+#' \code{mBIC2} [2], which controls FDR at the level near 0.05. There are more
 #' criteria to choose from or you can easily define your own (see 'Examples')
 #'
 #' If you have variables in rows, you have to transpose \code{X}. It can be
@@ -50,7 +51,7 @@
 #' @author Piotr Szulc
 #'
 #' @references
-#' [1] M. Bogdan, J.K. Ghosh, R.W. Doerge (2006), "Modifying the Schwarz
+#' [1] M. Bogdan, J.K. Ghosh, R.W. Doerge (2004), "Modifying the Schwarz
 #' Bayesian Information Criterion to locate multiple interacting quantitative
 #' trait loci", Genetics 167: 989-999.
 #'
@@ -64,18 +65,22 @@
 #'
 #' @examples
 #' \dontrun{
+#' library(bigstep)
+#' library(RcppEigen)
+#'
 #' # data1
 #' set.seed(1)
 #' n <- 100
 #' M <- 50
 #' X <- matrix(rnorm(n*M), ncol=M)
+#' colnames(X) <- 1:M
 #' snp <- 10*(1:5)
 #' y <- rowSums(X[, snp]) + rnorm(n)
 #'
 #' # you can use classical criteria to such type of data:
-#' fit <- selectModel(X, y, crit=aic)
-#' summary(fit)
-#' selectModel(X, y, crit=bic)
+#' selectModel(X, y, crit=aic)
+#' model <- selectModel(X, y, crit=bic)
+#' summary(fastLm(X[, model], y))
 #'
 #'
 #' # data2
@@ -83,16 +88,18 @@
 #' n <- 1e3
 #' M <- 1e4
 #' X <- matrix(rnorm(M*n), ncol=M)
+#' colnames(X) <- 1:M
 #' snp <- 1e3*(1:10)
 #' y <- rowSums(X[, snp]) + rnorm(n, sd=2)
 #' Q <- matrix(rnorm(n*5), n, 5)  # additional variables
+#' colnames(Q) <- -(1:5)
 #'
 #' # single tests + multi-forward + multi-backward + stepwise using mBIC
 #' selectModel(X, y, p=M)
 #' selectModel(X, y, p=M, multif=FALSE)  # only single tests + stepwise
 #' selectModel(X, y, p=M, multif=FALSE, minpv=1)  # only stepwise
 #'
-#' # you can start with a model with variables in Q and force that
+#' # you can start with a model with variables from Q and force that
 #' # 1st and 5th would not be removed
 #' selectModel(X, y, Xm=Q, stay=c(1, 5), p=M, crit=mbic2)
 #'
@@ -100,32 +107,97 @@
 #' # p-value > minpv), save it to a file (you can use it in another
 #' # model selection, it will be faster)
 #' selectModel(X, y, p=M, file.out="Xshort")
+#' Xs <- read.table("Xshort.txt", header=TRUE)
+#' selectModel(Xs, y, p=M, minpv=1)
+#'
+#' # selectModel(X, y, crit=bic)  # bad idea...
 #'
 #' # you can define your own criterion
-#' # (you have to put 'rss', 'k' and 'n' in a list of parameters)
-#' myCrit <- function(rss, k, n, c1=2, c2=3) {
-#'   c1*log(rss) + sqrt(k*c2)/5
+#' # (it can depend on log-likelihood (loglik), the number of observations (n),
+#' # the number of variables currently in a model (k), the matrix with variables
+#' # currenly in a model (Xm) and constants)
+#' myCrit <- function(loglik, k, n, c1=2, c2=4) {
+#'   -c1*loglik + 10*sqrt(k*c2)
 #' }
-#' selectModel(X, y, multif=FALSE, crit=myCrit, c1=1.5)
+#' selectModel(X, y, multif=FALSE, crit=myCrit, c1=0.18)
 #' selectModel(X, y, multif=FALSE,
-#'             crit=function(rss, k, n) 1.4*log(rss) + sqrt(k*3)/5)
+#'            crit=function(loglik, k, n) -0.17*loglik + 10*sqrt(k*4))
 #'
-#' selectModel(X, y, crit=bic)  # bad idea...
+#' # your criterion can depend on eg. the average correlation between variables
+#' # currently in a model
+#' myCrit2 <- function(loglik, Xm) {
+#'   n <- nrow(Xm)
+#'   k <- ncol(Xm)
+#'   m.cor <- 0
+#'   np <- 1
+#'   if (k > 1) {
+#'     pairs <- combn(1:k, 2)
+#'     np <- ncol(pairs)
+#'     for (i in 1:np) {
+#'       res <- suppressWarnings(abs(cor(Xm[, pairs[1, i]], Xm[, pairs[2, i]])))
+#'       if (is.na(res))
+#'         res <- 0
+#'       m.cor <- m.cor + res
+#'     }
+#'   }
+#'  -2*loglik + k*log(n) + n*k*m.cor/np
+#' }
+#' selectModel(X, y, multif=FALSE, crit=myCrit2)
+#'
+#' # you can define your own fitting function
+#' # (it can depend on X and y and should return the log-likelihood)
+#' fitLinear2 <- function(X, y) {
+#'   model <- RcppEigen::fastLmPure(X, y, method=2)
+#'   rss <- sum(model$residuals^2)
+#'   n <- length(y)
+#'   loglik <- -n/2*log(rss/n)
+#'   return(loglik)
+#' }
+#' system.time(selectModel(X, y, p=M, fitFun=fitLinear))
+#' system.time(selectModel(X, y, p=M, fitFun=fitLinear2))
+#' # fastLmPure with method=2 is faster but sometimes gives errors
 #'
 #'
-#' # data3
+#' # data3 (big data)
+#' library(bigmemory)
+#' # if it is possible, set type="char", reading will be quicker
 #' X <- read.big.matrix("X.txt", sep=" ", type="char", head=TRUE)
 #' y <- read.table("Trait.txt")
 #' Q <- read.table("Q.txt")
+#' M <- ncol(X)
 #' selectModel(X, y, p=M)
 #' selectModel(X, y, p=M, minpv=0.001) # if you do not have time...
+#'
+#'
+#' # data4
+#' set.seed(1)
+#' n <- 50
+#' M <- 1e3
+#' X <- matrix(runif(M*n), ncol=M)
+#' colnames(X) <- 1:M
+#' snp <- 1e2*(1:5)
+#' mu <- rowSums(X[, snp])
+#' y <- rpois(n, exp(mu))
+#' selectModel(X, y, p=M, fitFun=fitLinear, multif=FALSE)
+#' selectModel(X, y, p=M, fitFun=fitPoisson, multif=FALSE)
+#'
+#' set.seed(1)
+#' n <- 100
+#' X <- matrix(runif(M*n, -5, 5), ncol=M)
+#' colnames(X) <- 1:M
+#' mu <- rowSums(X[, snp])
+#' p <- 1/(1 + exp(-mu))
+#' y <- rbinom(n, 1, p)
+#' selectModel(X, y, p=M, fitFun=fitLogistic, multif=FALSE)
 #' }
 #'
 #' @importFrom methods is
 #' @importFrom utils txtProgressBar setTxtProgressBar write.table
-#' @importFrom stats cor pnorm complete.cases lm
-#' @importFrom speedglm speedlm.fit
+#' @importFrom stats cor pnorm complete.cases lm binomial poisson
+#' @importFrom RcppEigen fastLmPure
+#' @importFrom speedglm speedglm.wfit
 #' @importFrom bigmemory read.big.matrix as.big.matrix
+#' @importFrom R.utils doCall
 #'
 #' @name bigstep
 
