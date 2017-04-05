@@ -2,11 +2,11 @@
 allSteps <-
   function(X, y, fitFun=fitLinear, crit=mbic, Xm=NULL, stay=1, minpv=0.15,
            multif=TRUE, crit.multif=bic, maxf=min(ncol(X), 70), minb=0,
-           maxp=1e6, verbose=TRUE, file.out=NULL, ...) {
+           fastST=FALSE, maxp=1e6, verbose=TRUE, file.out=NULL, ...) {
 
   # single tests
   if (minpv < 1) {
-    ord <- prepareMatrix(X, y, fitFun, minpv, maxp, verbose, file.out)
+    ord <- prepareMatrix(X, y, fitFun, minpv, fastST, maxp, verbose, file.out)
     nX <- length(ord)
     if (verbose)
       message("The desing matrix has been reduced to ", nX, " columns.")

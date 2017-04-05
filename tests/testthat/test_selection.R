@@ -38,6 +38,12 @@ test_that("Model selection", {
   model <- selectModel(X, y, Xm=Q, stay=1, p=M, verbose=FALSE, maxp=2000)
   expect_equal(model, c("", "500", "10", "200", "50", "750"))
 
+  # NA
+  y[20] <- NA
+  X[4:6, 5:7] <- NA
+  model <- selectModel(X, y, Xm=Q, stay=1, p=M, verbose=FALSE, maxp=2000)
+  expect_equal(model, c("", "500", "10", "200", "50", "750"))
+
   # poisson
   set.seed(1)
   n <- 50

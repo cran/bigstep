@@ -6,8 +6,8 @@
 \usage{
 selectModel(X, y, fitFun = fitLinear, crit = mbic, Xm = NULL,
   stay = NULL, minpv = 0.15, multif = TRUE, crit.multif = bic,
-  maxf = min(ncol(X), 70), minb = 0, maxp = 1e+06, verbose = TRUE,
-  file.out = NULL, ...)
+  maxf = min(ncol(X), 70), minb = 0, fastST = FALSE, maxp = 1e+06,
+  verbose = TRUE, file.out = NULL, ...)
 }
 \arguments{
 \item{X}{a numeric matrix or an object of class big.matrix (see 'Details').
@@ -49,6 +49,11 @@ in the multi-forward step.}
 
 \item{minb}{a numeric, a minimal number of variables in the final model
 in the backward selection (see 'Details').}
+
+\item{fastST}{a logical. If \code{TRUE}, the Pearson correlation
+coefficients between \code{y} and all columns of \code{X} are calculated
+instead of the likelihood ratio tests (see 'Details'). It is faster but
+works only if you do not have any missing values.}
 
 \item{maxp}{a numeric. If \code{X} is big, it will be splitted into parts
 with \code{maxp} elements. It will not change results, but it is
@@ -112,9 +117,11 @@ Discovery Rate (FDR) is such type of data, you can change \code{crit} to
 \code{mBIC2} [2], which controls FDR at the level near 0.05. There are more
 criteria to choose from or you can easily define your own (see 'Examples')
 
-If you have variables in rows, you have to transpose \code{X}. It can be
-problematic if your data are big, so you can use the
-\code{transposeBigMatrix} function from this package.
+If you do not have the desing matrix in one file, you have to combine them.
+It can be problematic if your data are big, so you can use the
+\code{combineBigMatrices} function from this package. You can use it
+also when you have to transpose \code{X} (because you have variables in
+rows) or you want to change names of columns.
 }
 \examples{
 set.seed(1)

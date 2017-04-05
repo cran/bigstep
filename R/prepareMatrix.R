@@ -1,8 +1,8 @@
 # Reduce size of the design matrix and order variables according to p-values.
-prepareMatrix <- function(X, y, fitFun=fitLinear, minpv=0.15, maxp=1e6,
-                          verbose=TRUE, file.out=NULL) {
+prepareMatrix <- function(X, y, fitFun=fitLinear, minpv=0.15, fastST=FALSE,
+                          maxp=1e6, verbose=TRUE, file.out=NULL) {
 
-  pv <- singleTests(X, y, fitFun, maxp, verbose)
+  pv <- singleTests(X, y, fitFun, fastST, maxp, verbose)
   ord <- order(pv)
   pv <- pv[ord]
   ord <- ord[pv < minpv & !is.na(pv)]

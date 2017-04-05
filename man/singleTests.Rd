@@ -4,7 +4,8 @@
 \alias{singleTests}
 \title{Single tests}
 \usage{
-singleTests(X, y, fitFun = fitLinear, maxp = 1e+06, verbose = TRUE)
+singleTests(X, y, fitFun = fitLinear, fastST = FALSE, maxp = 1e+06,
+  verbose = TRUE)
 }
 \arguments{
 \item{X}{a numeric matrix or an object of class big.matrix (see 'Details').
@@ -19,6 +20,11 @@ the logarithm of the likelihood function (loglike). You can use your own
 function or one of these: \code{fitLinear}, \code{fitLogistic},
 \code{fitPoisson}.}
 
+\item{fastST}{a logical. If \code{TRUE}, the Pearson correlation
+coefficients between \code{y} and all columns of \code{X} are calculated
+instead of the likelihood ratio tests (see ?bigstep). It is faster but
+works only if you do not have any missing values.}
+
 \item{maxp}{a numeric. If \code{X} is big, it will be splitted into parts
 with \code{maxp} elements. It will not change results, but it is
 necessary if your computer does not have enough RAM. Set to a lower value
@@ -28,7 +34,8 @@ if you still have problems.}
 information during the selection procedure.}
 }
 \value{
-A numeric vector with p-values of the likelihood ratio test.
+A numeric vector with p-values of the likelihood ratio test
+(or the Pearson correlation test if \code{fastST=TRUE}).
 }
 \description{
 Perform the likelihood ratio tests between two regression models: 1) with

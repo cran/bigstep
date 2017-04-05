@@ -42,6 +42,11 @@
 #' @param minb a numeric, a minimal number of variables in the final model
 #' in the backward selection (see 'Details').
 #'
+#' @param fastST a logical. If \code{TRUE}, the Pearson correlation
+#' coefficients between \code{y} and all columns of \code{X} are calculated
+#' instead of the likelihood ratio tests (see 'Details'). It is faster but
+#' works only if you do not have any missing values.
+#'
 #' @param maxp a numeric. If \code{X} is big, it will be splitted into parts
 #' with \code{maxp} elements. It will not change results, but it is
 #' necessary if your computer does not have enough RAM. Set to a lower value
@@ -98,9 +103,11 @@
 #' \code{mBIC2} [2], which controls FDR at the level near 0.05. There are more
 #' criteria to choose from or you can easily define your own (see 'Examples')
 #'
-#' If you have variables in rows, you have to transpose \code{X}. It can be
-#' problematic if your data are big, so you can use the
-#' \code{transposeBigMatrix} function from this package.
+#' If you do not have the desing matrix in one file, you have to combine them.
+#' It can be problematic if your data are big, so you can use the
+#' \code{combineBigMatrices} function from this package. You can use it
+#' also when you have to transpose \code{X} (because you have variables in
+#' rows) or you want to change names of columns.
 #'
 #' @return The names of variables in the final model.
 #'
@@ -135,13 +142,15 @@
 selectModel <-
   function(X, y, fitFun=fitLinear, crit=mbic, Xm=NULL, stay=NULL, minpv=0.15,
            multif=TRUE, crit.multif=bic, maxf=min(ncol(X), 70), minb=0,
-           maxp=1e6, verbose=TRUE, file.out=NULL, ...) {
+           fastST=FALSE, maxp=1e6, verbose=TRUE, file.out=NULL, ...) {
 
   # matrix X
   if (!(class(X) %in% c("numeric", "matrix", "data.frame", "big.matrix")))
     stop("X has to be a numeric vector, matrix, data.frame or big.matrix.")
   if (class(X) %in% c("numeric", "data.frame"))
     X <- as.matrix(X)
+  if (class(X) == "matrix" & is.null(colnames(X)))
+    colnames(X) <- 1:ncol(X)
 
   # y
   y <- as.numeric(unlist(y, use.names=FALSE))
@@ -165,8 +174,8 @@ selectModel <-
   if (verbose)
     message("The desing matrix has ", n, " rows and ", ncol(X), " columns.")
 
-  Xm <- allSteps(X, y, fitFun, crit, Xm, stay, minpv, multif,
-                        crit.multif, maxf, minb, maxp, verbose, file.out, ...)
+  Xm <- allSteps(X, y, fitFun, crit, Xm, stay, minpv, multif, crit.multif,
+                 maxf, minb, fastST, maxp, verbose, file.out, ...)
   model <- colnames(Xm)[-1]
 
   return(model)

@@ -48,9 +48,11 @@ Discovery Rate (FDR) is such type of data, you can change \code{crit} to
 \code{mBIC2} [2], which controls FDR at the level near 0.05. There are more
 criteria to choose from or you can easily define your own (see 'Examples')
 
-If you have variables in rows, you have to transpose \code{X}. It can be
-problematic if your data are big, so you can use the
-\code{transposeBigMatrix} function from this package.
+If you do not have the desing matrix in one file, you have to combine them.
+It can be problematic if your data are big, so you can use the
+\code{combineBigMatrices} function from this package. You can use it
+also when you have to transpose \code{X} (because you have variables in
+rows) or you want to change names of columns.
 }
 \examples{
 \dontrun{
