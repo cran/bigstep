@@ -2,206 +2,108 @@
 #'
 #' Model selection using the stepwise procedure and the chosen criterion.
 #'
-#' @details
-#' To find the best model (linear or generalized), the following algorithm
-#' (a modification of the stepwise selection) is used [3]. In the first step
-#' the likelihood ratio tests between two regression models are performed:
-#' 1) with only the intercept, 2) with the intercept and every single variable
-#' from the matrix \code{X}. P-values are calculated and variables with
-#' p > \code{minpv} are excluded from the model selection procedure.
-#' In the second step (multi-forward) we start with the null model and add
-#' variables which decrease \code{crit.multif} (in order from the smallest
-#' p-value). The step is finished after we add \code{maxf} variables or none
-#' of remaining variables improve \code{crit.multif}.
-#' Then the classical backward selection is performed (with \code{crit}).
-#' When there is no variables to remove, the last step, the classical stepwise
-#' procedure, is performed (with \code{crit}).
+#' The main goal of the package \code{bigstep} is to allow you to select a
+#' regression model using the stepwise procedure when data is very big,
+#' potentially larger than available RAM in your computer. What is more, the
+#' package gives you a lot of control over how this procedure should look like.
+#' At this moment, you can use one of these functions: \code{stepwise},
+#' \code{forward}, \code{backward}, \code{fast_forward}, \code{multi_backward}
+#' and combinations of them. They can be treated as blocks from which the whole
+#' procedure of finding the best model is built.
 #'
-#' Results from this four-step procedure should be very similar to the
-#' classical stepwise procedure (when we start with the null model and do not
-#' omit variables with high p-values) but the first one is much quicker.
-#' The most time-consuming part is the forward step in the
-#' stepwise selection (in the multi-forward step we do not add the best
-#' variable but any which decrease \code{crit.multif}) and it is performed less
-#' often when we start with a reasonable model (sometimes you can find the best
-#' model without using the stepwise selection). But you can omit the first three
-#' steps if you set \code{multif=FALSE} and \code{minpv=1}. Resignation from
-#' the multi-forward step can be reasonable when you expect that the final
-#' model should be very small (a few variables).
+#' When your data is larger than RAM you have in your computer, it is
+#' impossible to read it in a normal way. Fortunately, in a process of building
+#' a regression model it is not necessary to have access to all predictors at the
+#' same time. Instead, you can read only a part of the matrix \code{X}, check
+#' all variables from that part and then read another one. To do that with this
+#' package, you only need to read the matrix \code{X} using
+#' \code{read.big.matrix} from \code{bigmemory} package. The \code{prepare_data}
+#' function has a parameter \code{maxp} which represents the maximum size (that
+#' is the number of elements) of one part. If \code{X} is bigger, it will be
+#' splitted. It will be done even if your matrix is big but you have enough RAM
+#' to read it in a normal way. It may seem unnecessary, but it is worth to do
+#' because R is not very efficient in dealing with big matrices.
 #'
-#' If your data are too big to store in RAM, you should read them with the
-#' \code{read.big.matrix} function from the \code{bigmemory} packages. The
-#' \code{selectModel} function will recognize that \code{X} is not an ordinary
-#' matrix and split your data to smaller parts. It will not change results but
-#' is necessary to work with big data.
+#' Another problem with a large number of predictors is choosing an appropriate
+#' criterion. Classical ones like AIC or BIC are bad choice because they will
+#' almost certainly select a model with two many variables [1]. You can use
+#' modifications of them like mBIC [2], mBIC2 [3], mAIC or mAIC2. In brief,
+#' these criteria have much heavier penalty for the number of parameters, so
+#' they prefer smaller models than their classic versions.
 #'
-#' The default criterion in the model selection procedure is a modification of
-#' the Bayesian Information Criterion, mBIC [1]. It was constructed to control
-#' the so-called Family-wise Error Rate (FWER) at the level near 0.05 when you
-#' have a lot of explanatory variables and only a few of them should stay in
-#' the final model. If you are interested in controlling the so-called False
-#' Discovery Rate (FDR) is such type of data, you can change \code{crit} to
-#' \code{mBIC2} [2], which controls FDR at the level near 0.05. There are more
-#' criteria to choose from or you can easily define your own (see 'Examples')
-#'
-#' If you do not have the desing matrix in one file, you have to combine them.
-#' It can be problematic if your data are big, so you can use the
-#' \code{combineBigMatrices} function from this package. You can use it
-#' also when you have to transpose \code{X} (because you have variables in
-#' rows) or you want to change names of columns.
+#' If you want to read more, type \code{browseVignettes("bigstep")}
 #'
 #' @author Piotr Szulc
 #'
 #' @references
-#' [1] M. Bogdan, J.K. Ghosh, R.W. Doerge (2004), "Modifying the Schwarz
-#' Bayesian Information Criterion to locate multiple interacting quantitative
-#' trait loci", Genetics 167: 989-999.
+#' [1] M. Bogdan, J.K. Ghosh, M. Zak-Szatkowska. Selecting explanatory
+#' variables with the modified version of Bayesian Information Criterion.
+#' Quality and Reliability Engineering International, 24:989-999, 2008.
 #'
-#' [2] F. Frommlet, A. Chakrabarti, M. Murawska, M. Bogdan (2011), "Asymptotic
-#' Bayes optimality under sparsity for generally distributed effect sizes under
-#' the alternative". Technical report at arXiv:1005.4753.
+#' [2] M. Bogdan, J.K. Ghosh, R.W. Doerge. Modifying the Schwarz Bayesian
+#' Information Criterion to locate multiple interacting quantitative trait loci.
+#' Genetics, 167:989-999, 2004.
 #'
-#' [3] F. Frommlet, F. Ruhaltinger, P. Twarog, M. Bogdan (2012), "A model
-#' selection approach to genome wide association studies", Computational
-#' Statistics and Data Analysis 56: 1038-1051.
+#' [3] F. Frommlet, A. Chakrabarti, M. Murawska, M. Bogdan. Asymptotic Bayes
+#' optimality under sparsity for general distributions under the alternative,
+#' Technical report, arXiv:1005.4753v2, 2011.
 #'
 #' @examples
 #' \dontrun{
 #' library(bigstep)
-#' library(RcppEigen)
 #'
-#' # data1
+#' ### small data
 #' set.seed(1)
-#' n <- 100
-#' M <- 50
-#' X <- matrix(rnorm(n*M), ncol=M)
-#' colnames(X) <- 1:M
-#' snp <- 10*(1:5)
-#' y <- rowSums(X[, snp]) + rnorm(n)
+#' n <- 200
+#' p <- 20
+#' X <- matrix(rnorm(n * p), ncol = p)
+#' colnames(X) <- paste0("X", 1:p)
+#' y <- 1 + 0.4 * rowSums(X[, c(5, 10, 15, 20)]) + rnorm(n)
 #'
-#' # you can use classical criteria to such type of data:
-#' selectModel(X, y, crit=aic)
-#' model <- selectModel(X, y, crit=bic)
-#' summary(fastLm(X[, model], y))
+#' data <- prepare_data(y, X)
+#' results <- stepwise(data, crit = aic)
+#' results$model
+#' summary(results)
 #'
-#'
-#' # data2
+#' ### bigger data
 #' set.seed(1)
 #' n <- 1e3
-#' M <- 1e4
-#' X <- matrix(rnorm(M*n), ncol=M)
-#' colnames(X) <- 1:M
-#' snp <- 1e3*(1:10)
-#' y <- rowSums(X[, snp]) + rnorm(n, sd=2)
-#' Q <- matrix(rnorm(n*5), n, 5)  # additional variables
-#' colnames(Q) <- -(1:5)
+#' p <- 1e4
+#' X <- matrix(rnorm(p * n), ncol = p)
+#' colnames(X) <- paste0("X", 1:p)
+#' Xadd <- matrix(rnorm(5 * n), n, 5)  # additional variables
+#' colnames(Xadd) <- paste0("Xadd", 1:5)
+#' y <- 0.2 * rowSums(X[, 1000 * (1:10)]) + Xadd[, 1] - 0.1 * Xadd[, 3] + rnorm(n)
 #'
-#' # single tests + multi-forward + multi-backward + stepwise using mBIC
-#' selectModel(X, y, p=M)
-#' selectModel(X, y, p=M, multif=FALSE)  # only single tests + stepwise
-#' selectModel(X, y, p=M, multif=FALSE, minpv=1)  # only stepwise
+#' data <- prepare_data(y, X, Xadd = Xadd)
+#' data %>%
+#'   reduce_matrix(minpv = 0.15) %>%
+#'   stepwise(mbic) ->
+#'   results
+#' summary(results)
 #'
-#' # you can start with a model with variables from Q and force that
-#' # 1st and 5th would not be removed
-#' selectModel(X, y, Xm=Q, stay=c(1, 5), p=M, crit=mbic2)
+#' ### big data
+#' Xbig <- read.big.matrix("X.txt", sep = " ", header = TRUE,
+#'                         backingfile = "X.bin", descriptorfile = "X.desc")
+#' # Xbig <- attach.big.matrix("X.desc") # much faster
+#' y <- read.table("y.txt")
+#' # data <- prepare_data(y, Xbig) # slow because of checking NA
+#' data <- prepare_data(y, Xbig, na = FALSE) # set if you know that you do not have NA
+#' data %>%
+#'   reduce_matrix(minpv = 0.001) %>%
+#'   fast_forward(crit = bic, maxf = 50) %>%
+#'   multi_backward(crit = mbic) %>%
+#'   stepwise(crit = mbic) -> m
+#' summary(m)
 #'
-#' # after reducing the size of matrix X (removing variables with
-#' # p-value > minpv), save it to a file (you can use it in another
-#' # model selection, it will be faster)
-#' selectModel(X, y, p=M, file.out="Xshort")
-#' Xs <- read.table("Xshort.txt", header=TRUE)
-#' selectModel(Xs, y, p=M, minpv=1)
-#'
-#' # selectModel(X, y, crit=bic)  # bad idea...
-#'
-#' # you can define your own criterion
-#' # (it can depend on log-likelihood (loglik), the number of observations (n),
-#' # the number of variables currently in a model (k), the matrix with variables
-#' # currenly in a model (Xm) and constants)
-#' myCrit <- function(loglik, k, n, c1=2, c2=4) {
-#'   -c1*loglik + 10*sqrt(k*c2)
-#' }
-#' selectModel(X, y, multif=FALSE, crit=myCrit, c1=0.18)
-#' selectModel(X, y, multif=FALSE,
-#'            crit=function(loglik, k, n) -0.17*loglik + 10*sqrt(k*4))
-#'
-#' # your criterion can depend on eg. the average correlation between variables
-#' # currently in a model
-#' myCrit2 <- function(loglik, Xm) {
-#'   n <- nrow(Xm)
-#'   k <- ncol(Xm)
-#'   m.cor <- 0
-#'   np <- 1
-#'   if (k > 1) {
-#'     pairs <- combn(1:k, 2)
-#'     np <- ncol(pairs)
-#'     for (i in 1:np) {
-#'       res <- suppressWarnings(abs(cor(Xm[, pairs[1, i]], Xm[, pairs[2, i]])))
-#'       if (is.na(res))
-#'         res <- 0
-#'       m.cor <- m.cor + res
-#'     }
-#'   }
-#'  -2*loglik + k*log(n) + n*k*m.cor/np
-#' }
-#' selectModel(X, y, multif=FALSE, crit=myCrit2)
-#'
-#' # you can define your own fitting function
-#' # (it can depend on X and y and should return the log-likelihood)
-#' fitLinear2 <- function(X, y) {
-#'   model <- RcppEigen::fastLmPure(X, y, method=2)
-#'   rss <- sum(model$residuals^2)
-#'   n <- length(y)
-#'   loglik <- -n/2*log(rss/n)
-#'   return(loglik)
-#' }
-#' system.time(selectModel(X, y, p=M, fitFun=fitLinear))
-#' system.time(selectModel(X, y, p=M, fitFun=fitLinear2))
-#' # fastLmPure with method=2 is faster but sometimes gives errors
-#'
-#'
-#' # data3 (big data)
-#' library(bigmemory)
-#' # if it is possible, set type="char", reading will be quicker
-#' X <- read.big.matrix("X.txt", sep=" ", type="char", head=TRUE)
-#' y <- read.table("Trait.txt")
-#' Q <- read.table("Q.txt")
-#' M <- ncol(X)
-#' selectModel(X, y, p=M)
-#' selectModel(X, y, p=M, minpv=0.001) # if you do not have time...
-#'
-#'
-#' # data4
-#' set.seed(1)
-#' n <- 50
-#' M <- 1e3
-#' X <- matrix(runif(M*n), ncol=M)
-#' colnames(X) <- 1:M
-#' snp <- 1e2*(1:5)
-#' mu <- rowSums(X[, snp])
-#' y <- rpois(n, exp(mu))
-#' selectModel(X, y, p=M, fitFun=fitLinear, multif=FALSE)
-#' selectModel(X, y, p=M, fitFun=fitPoisson, multif=FALSE)
-#'
-#' set.seed(1)
-#' n <- 100
-#' X <- matrix(runif(M*n, -5, 5), ncol=M)
-#' colnames(X) <- 1:M
-#' mu <- rowSums(X[, snp])
-#' p <- 1/(1 + exp(-mu))
-#' y <- rbinom(n, 1, p)
-#' selectModel(X, y, p=M, fitFun=fitLogistic, multif=FALSE)
+#' # more examples: type browseVignettes("bigstep")
 #' }
 #'
-#' @importFrom methods is
-#' @importFrom utils txtProgressBar setTxtProgressBar write.table
-#' @importFrom stats cor pnorm complete.cases lm binomial poisson
-#' @importFrom matrixStats colSds
+#' @docType package
+#' @name bigstep
 #' @importFrom RcppEigen fastLmPure
 #' @importFrom speedglm speedglm.wfit
-#' @importFrom bigmemory read.big.matrix as.big.matrix
-#' @importFrom R.utils doCall
-#'
-#' @name bigstep
+#' @importFrom stats complete.cases binomial poisson
+#' @importFrom stats cor glm lm sd
 
 NULL
