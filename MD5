@@ -1,4 +1,4 @@
-30235a66ea77b43b15d067ffa9f8eadc *DESCRIPTION
+c73d7798be97ed03fe5caa410bb1a6a6 *DESCRIPTION
 0cff23513e8febd6c48c5e46ac122e7b *NAMESPACE
 3b30225d45fbfecf26bc4250019b8aff *R/backward.R
 fad3e02f886f4850a505dd858a2132b4 *R/bigstep.R
@@ -12,10 +12,10 @@ b9ee7dbda5a2362141d0a59e481fa3ab *R/reduce.R
 d3df6d19ca3926d4abb411ba3ea562c2 *R/reexport.R
 0174737c175ee5c793aab6ca17375a45 *R/stepwise.R
 a4bd5be2c86a0d12f451ce7b3162b2e4 *README.md
-414d70ea459039e4f8eddf4d96bb619f *build/vignette.rds
+eb2f04a7cb9917378ae70f155d095c46 *build/vignette.rds
 9ff0aab3f817e3cff3bdb3250ea459d0 *inst/doc/bigstep.R
 d153a8c0ac43367208379ed899a33734 *inst/doc/bigstep.Rmd
-6168d827e1c291865ca58ecc80775484 *inst/doc/bigstep.html
+2a36ef341a254e2edd8cd54329269e0a *inst/doc/bigstep.html
 cc9166105d51e9484347dd66e4fc262b *man/aic.Rd
 ae00e1217e3623789ca50a052226e32d *man/backward.Rd
 e44f6f87355c045a246636d6ebe07608 *man/bic.Rd
@@ -34,10 +34,10 @@ ae49e02809071eeec47836d071980721 *man/reexports.Rd
 86801fc8660b54902e09e1e9ee433c27 *man/summary.big.Rd
 41052cdd621f6eea9195401283949833 *tests/testthat.R
 22ff1d026de9a1fe6ae9294c93998337 *tests/testthat/test_all.R
-bf0ec944b34961c29d7ac65992ffb3ac *tests/testthat/test_backward.R
+2b0f439cb6a0471fb8e6b37ae092c573 *tests/testthat/test_backward.R
 d76e6bde72d4720265b02060133aef3e *tests/testthat/test_criteria.R
 46b6abe5aaf0ddb97dc786ea59fe0ef6 *tests/testthat/test_fit_model.R
-426e0465d6fb1299091c3f6da2ab0a58 *tests/testthat/test_forward.R
+2df6488aa7e30cf3ac6991ba5d6cd48c *tests/testthat/test_forward.R
 989350a9845e4066cb7bf1cc1b2744a4 *tests/testthat/test_prep_data.R
 bf14d69eb0d162602c5b016de051d0f8 *tests/testthat/test_reduce.R
 b442905795792393680dfcc7bf8a4437 *tests/testthat/test_stepwise.R
