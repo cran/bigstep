@@ -13,7 +13,7 @@
 
 <meta name="author" content="Piotr Szulc" />
 
-<meta name="date" content="2019-07-16" />
+<meta name="date" content="2019-07-23" />
 
 <title>The stepwise procedure for big data</title>
 
@@ -304,7 +304,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">The stepwise procedure for big data</h1>
 <h4 class="author">Piotr Szulc</h4>
-<h4 class="date">2019-07-16</h4>
+<h4 class="date">2019-07-23</h4>
 
 
 
@@ -325,7 +325,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">results &lt;-<span class="st"> </span><span class="kw">stepwise</span>(data, <span class="dt">crit =</span> aic)</a>
 <a class="sourceLine" id="cb3-2" title="2">results<span class="op">$</span>model</a>
 <a class="sourceLine" id="cb3-3" title="3"><span class="kw">summary</span>(results)</a></code></pre></div>
-<p>You can use only one forward step (for example if you want to choose the best predictor).</p>
+<p>If you want, you can use only one forward step (for example to choose the best predictor).</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">forward</span>(data, <span class="dt">crit =</span> aic)</a></code></pre></div>
 <p>What is important, results are in the same format as input data (class <code>big</code>), so you can use <code>forward</code> again or in combination with other functions (with different criteria if you like). The pipe (<code>%&gt;%</code>) operator will be helpful. For every step the actual number of variables in a model, mean squared error (<em>MSE</em>) or accuracy (<em>ACC</em>; if you use the logistic regression) and a value of the chosen criterion (<em>crit</em>) are given.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1">data <span class="op">%&gt;%</span></a>
@@ -348,7 +348,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb6-9" title="9">y &lt;-<span class="st"> </span><span class="fl">0.2</span> <span class="op">*</span><span class="st"> </span><span class="kw">rowSums</span>(X[, <span class="dv">1000</span> <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>)]) <span class="op">+</span><span class="st"> </span>Xadd[, <span class="dv">1</span>] <span class="op">-</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">*</span><span class="st"> </span>Xadd[, <span class="dv">3</span>] <span class="op">+</span><span class="st"> </span><span class="kw">rnorm</span>(n)</a></code></pre></div>
 <p>If you have a lot o predictors, it can be a good idea to remove those that are not related with <code>y</code>. You can do that using <code>reduce_matrix</code>. This function calculates p-values for the Pearson correlation test and every variable from <code>X</code> (separately). Variables with p-values larger than <code>minpv</code> will not be considered in the next steps (formally, they are removed from <code>candidates</code>, one of components of class <code>big</code>). Thanks to that, the whole stepwise procedure will be much quicker. What is more, <code>reduce_matrix</code> changes the order of predictors in such a way that at the beginning there will be variables with the smallest p-values. It is important if you want to use <code>fast_forward</code> function.</p>
 <p>Another problem is choosing an appropriate criterion to such data. Classical ones like AIC or BIC are bad choice because they will almost certainly select a model with too many variables<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. You can use modifications of them like mBIC<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>, mBIC2<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>, mAIC or mAIC2. In brief, these criteria have much heavier penalty for the number of parameters, so they prefer smaller models than their classic versions.</p>
-<p>Additionally, in the example below we add variables from other matrix to a model (<code>Xadd</code>). It can be a good idea if there are predictors which are important for us and want them to remain at every stage of building the model.</p>
+<p>Additionally, in the example below we add variables from other matrix to a model (<code>Xadd</code>). They will not be removed in any step. It can be a good idea if there are predictors which are important for us and want them to remain at every stage of building the model.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">data &lt;-<span class="st"> </span><span class="kw">prepare_data</span>(y, X, <span class="dt">Xadd =</span> Xadd)</a>
 <a class="sourceLine" id="cb7-2" title="2">data <span class="op">%&gt;%</span></a>
 <a class="sourceLine" id="cb7-3" title="3"><span class="st">  </span><span class="kw">reduce_matrix</span>(<span class="dt">minpv =</span> <span class="fl">0.15</span>) <span class="op">%&gt;%</span></a>
@@ -387,7 +387,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </div>
 <div id="own-criteria" class="section level2">
 <h2>Own criteria</h2>
-<p>You can easily define your own criterion. It can depend on log-likelihood (<code>loglik</code>), the number of observations (<code>n</code>), the number of all variables (<code>p</code>), the number of variables currently in a model (<code>k</code>), the matrix with variables which are currently in a model (<code>Xm</code>) and constants. These parameters will be sent to your criterion, exactly with such names (but you do not have to use all).</p>
+<p>You can easily define your own criterion. It can depend on log-likelihood (<code>loglik</code>), the number of observations (<code>n</code>), the number of all variables (<code>p</code>), the number of variables currently in a model (<code>k</code>; intercept and variables from <code>Xadd</code> are not counted), the matrix with variables which are currently in a model (<code>Xm</code>) and constants. These parameters will be sent to your criterion, exactly with such names (but you do not have to use all).</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1">my_crit &lt;-<span class="st"> </span><span class="cf">function</span>(loglik, k, n, <span class="dt">c1 =</span> <span class="fl">0.5</span>, <span class="dt">c2 =</span> <span class="dv">8</span>) {</a>
 <a class="sourceLine" id="cb10-2" title="2">  <span class="op">-</span>c1<span class="op">*</span>loglik <span class="op">+</span><span class="st"> </span><span class="dv">10</span><span class="op">*</span><span class="kw">sqrt</span>(k<span class="op">*</span>c2)</a>
 <a class="sourceLine" id="cb10-3" title="3">}</a>
