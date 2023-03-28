@@ -4,8 +4,16 @@
 \alias{prepare_data}
 \title{Data preparation}
 \usage{
-prepare_data(y, X, type = "linear", candidates = NULL, Xadd = NULL,
-  na = NULL, maxp = 1e+06, verbose = TRUE)
+prepare_data(
+  y,
+  X,
+  type = "linear",
+  candidates = NULL,
+  Xadd = NULL,
+  na = NULL,
+  maxp = 1e+06,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{y}{a numeric vector of dependent (target) variable.}
@@ -30,7 +38,7 @@ automatically added (it is impossible to not include the intercept).}
 \code{NULL}, it will be checked (it can take some time if \code{X} is big,
 so it is reasonable to set it).}
 
-\item{maxp}{a numeric. The matrix \code{X} will be splitted into parts with
+\item{maxp}{a numeric. The matrix \code{X} will be split into parts with
 \code{maxp} elements. It will not change results, but it is necessary if
 your computer does not have enough RAM. Set to a lower value if you still
 have problems.}

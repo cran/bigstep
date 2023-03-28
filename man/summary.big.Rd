@@ -13,10 +13,10 @@
 ignored in this function.}
 }
 \value{
-An object of class \code{summary.lm} or \code{summary.glm}.
+An object of class \code{summary.lm}.
 }
 \description{
-code{summary} method for class \code{big}.
+\code{summary} method for class \code{big}.
 }
 \examples{
 set.seed(1)
