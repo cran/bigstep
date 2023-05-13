@@ -12,7 +12,7 @@
 
 <meta name="author" content="Piotr Szulc" />
 
-<meta name="date" content="2023-03-28" />
+<meta name="date" content="2023-05-11" />
 
 <title>The stepwise procedure for big data</title>
 
@@ -340,7 +340,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">The stepwise procedure for big data</h1>
 <h4 class="author">Piotr Szulc</h4>
-<h4 class="date">2023-03-28</h4>
+<h4 class="date">2023-05-11</h4>
 
 
 
@@ -349,10 +349,11 @@ select a regression model using the stepwise procedure when data is very
 big, potentially larger than available RAM in your computer. What is
 more, the package gives you a lot of control over how this procedure
 should look like. At this moment, you can use one of these functions:
-<code>stepwise</code>, <code>forward</code>, <code>backward</code>,
-<code>fast_forward</code>, <code>multi_backward</code> and combinations
-of them. They can be treated as blocks from which the whole procedure of
-finding the best model is built.</p>
+<code>stepwise()</code>, <code>forward()</code>,
+<code>backward()</code>, <code>fast_forward()</code>,
+<code>multi_backward()</code> and combinations of them. They can be
+treated as blocks from which the whole procedure of finding the best
+model is built.</p>
 <div id="small-data" class="section level2">
 <h2>Small data</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># generate data</span></span>
@@ -364,23 +365,24 @@ finding the best model is built.</p>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> <span class="fu">rowSums</span>(X[, <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">20</span>)]) <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span></code></pre></div>
 <p>First, you have to convert your data to a proper format, an object of
 class <code>big</code>. It can be done using the function
-<code>prepare_data</code>. In most cases you will only need to specify a
-vector of responses, <code>y</code>, and a matrix of predictors,
+<code>prepare_data()</code>. In most cases you will only need to specify
+a vector of responses, <code>y</code>, and a matrix of predictors,
 <code>X</code>.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bigstep)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">prepare_data</span>(y, X)</span></code></pre></div>
 <p>Then, you can use the stepwise procedure with, for example, Akaike
-Information Criterion and <code>summary</code> function to get more
-information about the final model.</p>
+Information Criterion and <code>summary()</code> to get more information
+about the final model. The function <code>get_model()</code> returns the
+object of class <code>lm</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">stepwise</span>(data, <span class="at">crit =</span> aic)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>results<span class="sc">$</span>model</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">get_model</span>(results) <span class="co"># object of class `lm`</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(results)</span></code></pre></div>
-<p>If you want, you can use only one forward step (for example to choose
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(results)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">get_model</span>(results)</span></code></pre></div>
+<p>You can use only one forward step (for example if you want to choose
 the best predictor).</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">forward</span>(data, <span class="at">crit =</span> aic)</span></code></pre></div>
 <p>What is important, results are in the same format as input data
-(class <code>big</code>), so you can use <code>forward</code> again or
+(class <code>big</code>), so you can use <code>forward()</code> again or
 in combination with other functions (with different criteria if you
 like). The pipe (<code>%&gt;%</code>) operator will be helpful. For
 every step the actual number of variables in a model, mean squared error
@@ -408,16 +410,16 @@ be useful if you have a lot of predictors (see the next paragraph).</p>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fl">0.2</span> <span class="sc">*</span> <span class="fu">rowSums</span>(X[, <span class="dv">1000</span> <span class="sc">*</span> (<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)]) <span class="sc">+</span> Xadd[, <span class="dv">1</span>] <span class="sc">-</span> <span class="fl">0.1</span> <span class="sc">*</span> Xadd[, <span class="dv">3</span>] <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span></code></pre></div>
 <p>If you have a lot o predictors, it can be a good idea to remove those
 that are not related with <code>y</code>. You can do that using
-<code>reduce_matrix</code>. This function calculates p-values for the
+<code>reduce_matrix()</code>. This function calculates p-values for the
 Pearson correlation test and every variable from <code>X</code>
 (separately). Variables with p-values larger than <code>minpv</code>
 will not be considered in the next steps (formally, they are removed
 from <code>candidates</code>, one of components of class
 <code>big</code>). Thanks to that, the whole stepwise procedure will be
-much quicker. What is more, <code>reduce_matrix</code> changes the order
-of predictors in such a way that at the beginning there will be
+much quicker. What is more, <code>reduce_matrix()</code> changes the
+order of predictors in such a way that at the beginning there will be
 variables with the smallest p-values. It is important if you want to use
-<code>fast_forward</code> function.</p>
+<code>fast_forward()</code>.</p>
 <p>Another problem is choosing an appropriate criterion to such data.
 Classical ones like AIC or BIC are bad choice because they will almost
 certainly select a model with too many variables<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. You can use
@@ -425,9 +427,9 @@ modifications of them like mBIC<a href="#fn2" class="footnote-ref" id="fnref2"><
 have much heavier penalty for the number of parameters, so they prefer
 smaller models than their classic versions.</p>
 <p>Additionally, in the example below we add variables from other matrix
-to a model (<code>Xadd</code>). They will not be removed in any step. It
-can be a good idea if there are predictors which are important for us
-and want them to remain at every stage of building the model.</p>
+to a model (<code>Xadd</code>). It can be a good idea if there are
+predictors which are important for us and want them to remain at every
+stage of building the model.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">prepare_data</span>(y, X, <span class="at">Xadd =</span> Xadd)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reduce_matrix</span>(<span class="at">minpv =</span> <span class="fl">0.15</span>) <span class="sc">%&gt;%</span></span>
@@ -440,31 +442,32 @@ and want them to remain at every stage of building the model.</p>
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stepwise</span>(bic) <span class="co"># bad idea...</span></span></code></pre></div>
 <p>Sometimes it will be reasonable to start with a model with some good
 predictors and then use the stepwise procedure. It can be achieved if we
-use <code>fast_forward</code> which adds every variable that reduces a
+use <code>fast_forward()</code> which adds every variable that reduces a
 criterion (not necessarily the best one). It is important for that
 function to search for variables in a reasonable order (first, the most
 correlated with <code>y</code>), so you should use
-<code>fast_forward</code> after <code>reduce_matrix</code> (you can set
-<code>minpv = 1</code> if you do not want to remove any predictor, just
-change the order). It is good idea to run <code>fast_forward</code> with
-a criterion which does not have a heavy penalty for the size of a model,
-so for example BIC is better than mBIC. After adding a lot of variables,
-most of them will be useless, so it can be a good idea to perform the
-backward elimination—as long as there are variables reducing a
-criterion. Run <code>multi_backward</code> to do that.</p>
+<code>fast_forward()</code> after <code>reduce_matrix()</code> (you can
+set <code>minpv = 1</code> if you do not want to remove any predictor,
+just change the order). It is good idea to run
+<code>fast_forward()</code> with a criterion which does not have a heavy
+penalty for the size of a model, so for example BIC is better than mBIC.
+After adding a lot of variables, most of them will be useless, so it can
+be a good idea to perform the backward elimination—as long as there are
+variables reducing a criterion. Run <code>multi_bacward()</code> to do
+that.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reduce_matrix</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fast_forward</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">multi_backward</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stepwise</span>()</span></code></pre></div>
-<p>If you are lucky, you do not have to run <code>stepwise</code> after
-<code>fast_forward</code> and <code>multi_backward</code> because you
-will already have the best model. It is important because
-<code>stepwise</code> consists of potentially many <code>backward</code>
-and <code>forward</code> steps and <code>forward</code> takes most time
-in whole procedure of building a model (we have to check every predictor
-to find the best one). So the fewer such steps, the faster you will get
-the model. It can be crucial if you have big data.</p>
+<p>If you are lucky, you do not have to run <code>stepwise()</code>
+after <code>fast_forward()</code> and <code>multi_backward()</code>
+because you will already have the best model. It is important because
+<code>stepwise()</code> consists of potentially many backward and
+forward steps and forward takes most time in whole procedure of building
+a model (we have to check every predictor to find the best one). So the
+fewer such steps, the faster you will get the model. It can be crucial
+if you have big data.</p>
 </div>
 <div id="big-data" class="section level2">
 <h2>Big data</h2>
@@ -474,20 +477,20 @@ of building regression model it is not necessary to have access to all
 predictors at the same time. Instead, you can read only a part of the
 matrix <code>X</code>, check all variables from that part and then read
 another one. To do that, you only need to read the matrix <code>X</code>
-using <code>read.big.matrix</code> from <code>bigmemory</code> package.
-The <code>prepare_data</code> function has a parameter <code>maxp</code>
-which represents the maximum size (that is the number of elements) of
-one part. If <code>X</code> is bigger, it will be split. It will be done
-even if your matrix is big but you have enough RAM to read it in a
-normal way. It may seem unnecessary, but it is worth to do because R is
-not very efficient in dealing with big matrices. Remember that
-<code>maxp</code> cannot be smaller than the number of observations
+using <code>read.big.matrix()</code> from <code>bigmemory</code>
+package. The <code>prepare_data()</code> has a parameter
+<code>maxp</code> which represents the maximum size (that is the number
+of elements) of one part. If <code>X</code> is bigger, it will be split.
+It will be done even if your matrix is big but you have enough RAM to
+read it in a normal way. It may seem unnecessary, but it is worth to do
+because R is not very efficient in dealing with big matrices. Remember
+that <code>maxp</code> cannot be smaller than the number of observations
 (rows in <code>X</code>), by default it is 1e6.</p>
 <p>In the code below we assume that you have a big matrix in a file
 <em>X.txt</em>. Reading such matrix can be slow, but if you set
 <code>backingfile</code> and <code>descriptorfile</code> you have to do
-that once and next time you can use <code>attach.big.matrix</code> which
-is much faster.</p>
+that once and next time you can use <code>attach.big.matrix()</code>
+which is much faster.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Xbig <span class="ot">&lt;-</span> <span class="fu">read.big.matrix</span>(<span class="st">&quot;X.txt&quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>, <span class="at">header =</span> <span class="cn">TRUE</span>,</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">backingfile =</span> <span class="st">&quot;X.bin&quot;</span>, <span class="at">descriptorfile =</span> <span class="st">&quot;X.desc&quot;</span>)</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Xbig &lt;- attach.big.matrix(&quot;X.desc&quot;) # much faster</span></span>
@@ -509,9 +512,8 @@ predictors.</p>
 <p>You can easily define your own criterion. It can depend on
 log-likelihood (<code>loglik</code>), the number of observations
 (<code>n</code>), the number of all variables (<code>p</code>), the
-number of variables currently in a model (<code>k</code>; intercept and
-variables from <code>Xadd</code> are not counted), the matrix with
-variables which are currently in a model (<code>Xm</code>) and
+number of variables currently in a model (<code>k</code>), the matrix
+with variables which are currently in a model (<code>Xm</code>) and
 constants. These parameters will be sent to your criterion, exactly with
 such names (but you do not have to use all).</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>my_crit <span class="ot">&lt;-</span> <span class="cf">function</span>(loglik, k, n, <span class="at">c1 =</span> <span class="fl">0.5</span>, <span class="at">c2 =</span> <span class="dv">8</span>) {</span>
@@ -528,29 +530,45 @@ on the average correlation between variables which are in a model.</p>
 <h2>General linear models</h2>
 <p>The package allows you to fit logistic and Poisson models. All you
 need to do is setting the parameter <code>type</code> when you prepare
-data. In the previous version, <code>bigstep</code> used the
-<code>speedglm</code> package to fit models. Unfortunately, this package
-has been removed from CRAN. Currently, at the model selection stage, the
-<code>type</code> parameter is ignored, i.e. bigstep looks for the best
-set of variables, fitting a linear regression model. Only at the end is
-the appropriate glm model fitted. Fortunately, this does not make much
-difference in practice. It is a known fact that even if one is
-interested in a logistic regression model, the stepwise regression can
-be performed based on linear regression — the same variables will be
-selected (and the whole procedure is faster).</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># logistic model</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2</span>)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">runif</span>(n <span class="sc">*</span> p, <span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>), <span class="at">ncol =</span> p)</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(X) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>, <span class="dv">1</span><span class="sc">:</span>p)</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(X[, <span class="dv">100</span> <span class="sc">*</span> (<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>)])</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span>( <span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>mu))</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, prob)</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">prepare_data</span>(y, X, <span class="at">type =</span> <span class="st">&quot;logistic&quot;</span>)</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>m_log <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reduce_matrix</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stepwise</span>()</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_log) <span class="co"># glm</span></span></code></pre></div>
+data. Take note that the <code>reduce_matrix()</code> always calculates
+the Pearson correlation, even if you use general linear models. What’s
+more, it is a known fact that even if one is interested in a logistic
+regression model, the stepwise regression can be performed based on
+linear regression — very often the same variables will be selected (and
+the whole procedure is faster).</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Poisson model</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">runif</span>(n <span class="sc">*</span> p), <span class="at">ncol =</span> p)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(X) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>, <span class="dv">1</span><span class="sc">:</span>p)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(X[, <span class="dv">100</span> <span class="sc">*</span> (<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>)])</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rpois</span>(n, <span class="fu">exp</span>(mu))</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> <span class="fu">prepare_data</span>(y, X, <span class="at">type =</span> <span class="st">&quot;linear&quot;</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>data2 <span class="ot">&lt;-</span> <span class="fu">prepare_data</span>(y, X, <span class="at">type =</span> <span class="st">&quot;poisson&quot;</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">%&gt;%</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reduce_matrix</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stepwise</span>() <span class="co"># did not see any variables</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>data2 <span class="sc">%&gt;%</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reduce_matrix</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stepwise</span>()</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="co"># logistic model</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2</span>)</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">runif</span>(n <span class="sc">*</span> p, <span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>), <span class="at">ncol =</span> p)</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(X) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>, <span class="dv">1</span><span class="sc">:</span>p)</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fl">0.8</span> <span class="sc">*</span> <span class="fu">rowSums</span>(X[, <span class="dv">100</span> <span class="sc">*</span> (<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>)])</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span>( <span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>mu))</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, prob)</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> <span class="fu">prepare_data</span>(y, X, <span class="at">type =</span> <span class="st">&quot;linear&quot;</span>)</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>data2 <span class="ot">&lt;-</span> <span class="fu">prepare_data</span>(y, X, <span class="at">type =</span> <span class="st">&quot;logistic&quot;</span>)</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">%&gt;%</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reduce_matrix</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stepwise</span>()</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>data2 <span class="sc">%&gt;%</span></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reduce_matrix</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stepwise</span>()</span></code></pre></div>
 </div>
 <div class="footnotes footnotes-end-of-document">
 <hr />
