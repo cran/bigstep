@@ -1,6 +1,6 @@
-243dbf22c999f340c9c0fcf651d53545 *DESCRIPTION
+692921df6f4c1058afbf10cf969bca50 *DESCRIPTION
 684f232a0cada7a9418e53ffbc3d01ec *NAMESPACE
-ffd7c1a04c670945eb26c52602322151 *NEWS.md
+a595a4ee841408d2fa45474f61e0e38f *NEWS.md
 1dd0d724e6b2c21e3f85b823435ca036 *R/backward.R
 904a340c9637f631400609406cb290b4 *R/bigstep.R
 40a81610128efec1c7a07093b80716df *R/criteria.R
@@ -13,10 +13,10 @@ b9ee7dbda5a2362141d0a59e481fa3ab *R/reduce.R
 d3df6d19ca3926d4abb411ba3ea562c2 *R/reexport.R
 010c1d6d8c356b779ab82b0e7fc745ed *R/stepwise.R
 0705f85bf9da17c6d618b0cae538a1b4 *README.md
-16fa893a1857d28ec0afba7092f69c32 *build/vignette.rds
-334ba471bb4d0e1121ddc1a250b46ba5 *inst/doc/bigstep.R
+bdcee2463fd79de0a546cfeecc145ab4 *build/vignette.rds
+f65016bbb8d313b7b0c996bc7ec1e3b1 *inst/doc/bigstep.R
 672ac68d62c920eb0f47b035b8c77b50 *inst/doc/bigstep.Rmd
-bdd42d3cfd7b48c4f13495ef2c00edb3 *inst/doc/bigstep.html
+20f7ab47877f991aa7d5ac0e83cd219d *inst/doc/bigstep.html
 cc9166105d51e9484347dd66e4fc262b *man/aic.Rd
 ae00e1217e3623789ca50a052226e32d *man/backward.Rd
 e44f6f87355c045a246636d6ebe07608 *man/bic.Rd
@@ -36,11 +36,12 @@ f4a4eeea719367649446dce99a38f02e *man/multi_backward.Rd
 68ac0d31d587d777680d2c59478eb4a4 *man/summary.big.Rd
 41052cdd621f6eea9195401283949833 *tests/testthat.R
 2bc91f465f616519bd79d533b21e8a51 *tests/testthat/test_all.R
-3b2af309f3a1fece845b331af54ff374 *tests/testthat/test_backward.R
+20bc494bfa7c6892e64df550f5dd4f80 *tests/testthat/test_backward.R
 146315159fea9474199c2675e25e03bf *tests/testthat/test_criteria.R
 5e7387fca3e007b922ee7e19c0f00c98 *tests/testthat/test_fit_model.R
-2df6488aa7e30cf3ac6991ba5d6cd48c *tests/testthat/test_forward.R
+e73aadc5888a13d770691cae28905be4 *tests/testthat/test_forward.R
 39fe6eb36fda6e050fb71fc2da6ec675 *tests/testthat/test_prep_data.R
 bf14d69eb0d162602c5b016de051d0f8 *tests/testthat/test_reduce.R
 b442905795792393680dfcc7bf8a4437 *tests/testthat/test_stepwise.R
+61009e1c561fa48115e6ae68bb43d768 *tests/testthat/testthat-problems.rds
 672ac68d62c920eb0f47b035b8c77b50 *vignettes/bigstep.Rmd
